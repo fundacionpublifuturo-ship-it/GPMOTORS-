@@ -814,6 +814,55 @@ html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* ====================================================== */
+/*  === Mejoras del HERO móvil === */
+/* ====================================================== */
+@media (max-width:780px){
+  .home-page .site-header{
+    background:linear-gradient(180deg,rgba(0,0,0,.65) 0%,rgba(0,0,0,.25) 70%,transparent 100%)!important;
+    padding-top:max(14px, env(safe-area-inset-top))!important;
+  }
+  .home-page .site-header .brand-logo{filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
+  .home-page .site-header .brand-logo img{mix-blend-mode:screen;opacity:.95}
+  .hero-photo-caption{display:none!important}
+  .hero-bottom{
+    bottom:max(80px, calc(env(safe-area-inset-bottom) + 80px))!important;
+    padding:0 20px;gap:14px;flex-direction:column;align-items:flex-start!important;
+  }
+  .hero-scroll{
+    justify-self:flex-start!important;flex-direction:row!important;align-items:center!important;
+    gap:12px!important;font-size:11px!important;letter-spacing:.2em!important;color:#fff;
+    padding:12px 18px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);border-radius:40px;
+  }
+  .hero-origin{text-align:left!important;justify-self:flex-start!important;font-size:10px!important;letter-spacing:.22em;color:#ccc;opacity:.8}
+  .floating-contact{
+    bottom:max(20px, env(safe-area-inset-bottom))!important;right:16px!important;
+    width:52px!important;height:52px!important;
+    box-shadow:0 6px 24px rgba(215,25,32,.5), 0 0 0 1px rgba(255,255,255,.1)!important;
+    transition:bottom .3s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .floating-contact:hover,.floating-contact:focus{transform:scale(1.06)}
+  body.hero-visible .floating-contact{
+    bottom:max(170px, calc(env(safe-area-inset-bottom) + 170px))!important;
+  }
+  .hero-shade{
+    background:linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.15) 35%, rgba(0,0,0,.25) 60%, rgba(0,0,0,.85) 100%)!important;
+  }
+  .hero h1{font-size:clamp(72px, 15vw, 110px)!important;letter-spacing:-.03em;margin-top:0!important}
+  .hero-content{padding-top:5vh!important;padding-bottom:140px!important}
+  .eyebrow{font-size:10px!important;opacity:.95}
+  .hero-copy{max-width:92%;line-height:1.55;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+}
+@media (max-width:390px){
+  .hero h1{font-size:clamp(60px, 14vw, 85px)!important;line-height:.9!important}
+  .hero-copy{font-size:12.5px!important}
+  .hero-bottom{bottom:max(70px, calc(env(safe-area-inset-bottom) + 70px))!important}
+  body.hero-visible .floating-contact{bottom:max(140px, calc(env(safe-area-inset-bottom) + 140px))!important}
+  .home-page .site-header .brand-logo{width:180px!important;height:42px!important}
+}
+
 </style></head>
 <body class="home-page">
   <a class="skip" href="#catalogo">Ir al catálogo</a>
@@ -1010,5 +1059,16 @@ html{scroll-behavior:smooth}
   dlg.addEventListener('touchend', (ev) => {
     if (ev.target.closest('button')) ev.preventDefault();
   }, {passive:false});
+})();
+</script><script id="gp-hero-visibility">
+(function(){
+  const hero = document.querySelector('.hero');
+  if (!hero || !window.IntersectionObserver) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      document.body.classList.toggle('hero-visible', e.isIntersecting && e.intersectionRatio > 0.15);
+    });
+  }, { threshold: [0, 0.15, 0.3] });
+  io.observe(hero);
 })();
 </script></body></html>
