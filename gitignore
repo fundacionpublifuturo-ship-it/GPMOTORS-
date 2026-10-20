@@ -1,0 +1,35 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Builds
+dist/
+build/
+.cache/
+
+# Backups del admin exportados (opcional: puedes versionarlos si quieres histórico)
+gpmotors-catalogo-*.json

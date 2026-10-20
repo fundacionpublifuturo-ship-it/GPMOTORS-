@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>GP MOTORS · Admin</title>
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23D71920'/><text x='50' y='68' font-family='Arial' font-size='56' font-weight='900' text-anchor='middle' fill='%23fff'>G</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ RESET & VARIABLES ============ */
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --red:#D71920; --red-dark:#B01118; --red-tint:#FEE2E4;
+  --ink:#171717; --ink-soft:#2a2a2a; --ink-mid:#555; --ink-light:#999;
+  --paper:#fff; --bg:#f6f7f8; --bg-soft:#fafafa;
+  --line:#e4e6e8; --line-soft:#ececec;
+  --ok:#1e9d55; --warn:#F5B041; --danger:#D71920;
+  --radius:4px; --radius-lg:8px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+  --shadow:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 14px 40px rgba(0,0,0,.12);
+  --sidebar-w:240px;
+  --topbar-h:64px;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --t-fast:160ms; --t-base:280ms;
+}
+html,body{height:100%}
+body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;font-size:14px;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:14px;color:inherit}
+h1,h2,h3,h4,h5{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ============ LOGIN SCREEN ============ */
+.login-screen{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
+.login-screen::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(215,25,32,.15),transparent 55%),radial-gradient(circle at 80% 80%,rgba(215,25,32,.08),transparent 60%)}
+.login-card{position:relative;background:#fff;border-radius:var(--radius-lg);padding:48px 44px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.4);animation:slideUp .5s var(--ease)}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.login-brand{text-align:center;margin-bottom:32px}
+.login-brand h1{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;letter-spacing:.04em}
+.login-brand h1 .red{color:var(--red)}
+.login-brand small{display:block;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.3em;color:var(--ink-light);text-transform:uppercase;margin-top:8px;font-weight:500}
+.login-card label{display:block;margin-bottom:18px}
+.login-card label span{display:block;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mid);margin-bottom:6px}
+.login-card input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+.login-card input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint)}
+.login-card .login-btn{width:100%;padding:14px;background:var(--ink);color:#fff;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;border-radius:var(--radius);transition:background var(--t-fast) var(--ease),transform var(--t-fast) var(--ease);margin-top:10px}
+.login-card .login-btn:hover{background:var(--red)}
+.login-card .login-btn:active{transform:scale(.98)}
+.login-card .login-btn[disabled]{opacity:.6;cursor:wait}
+.login-status{margin-top:16px;font-size:12px;text-align:center;min-height:18px}
+.login-status.err{color:var(--red)}
+.login-status.ok{color:var(--ok)}
+.login-help{margin-top:24px;padding-top:20px;border-top:1px solid var(--line-soft);font-size:11px;color:var(--ink-light);text-align:center;line-height:1.6}
+.login-help code{background:var(--bg);padding:2px 6px;border-radius:3px;font-size:11px;color:var(--ink)}
+
+/* ============ APP LAYOUT ============ */
+.app[hidden]{display:none!important}.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+
+/* --- Sidebar --- */
+.sidebar{background:var(--ink);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-brand{padding:22px 24px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-brand h1{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.08em;line-height:1}
+.sidebar-brand h1 .red{color:var(--red)}
+.sidebar-brand small{display:block;font-size:9px;letter-spacing:.32em;color:var(--ink-light);text-transform:uppercase;margin-top:5px;font-weight:600}
+.sidebar nav{flex:1;padding:16px 10px}
+.sidebar nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;color:#bbb;cursor:pointer;margin-bottom:2px;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.sidebar nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.sidebar nav a.is-active{background:var(--red);color:#fff}
+.sidebar nav a .ico{width:18px;height:18px;flex-shrink:0;opacity:.9}
+.sidebar nav .section-title{display:block;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#555;padding:16px 14px 8px;margin-top:8px}
+.sidebar-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:12px}
+.sidebar-footer .user{color:#bbb;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-footer .mode-chip{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#999;margin-bottom:10px}
+.sidebar-footer .mode-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.sidebar-footer .mode-chip.live .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(30,157,85,.2)}
+.sidebar-footer .btn-logout{display:block;width:100%;padding:9px;background:transparent;color:#bbb;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+.sidebar-footer .btn-logout:hover{background:rgba(255,255,255,.08);color:#fff;border-color:transparent}
+
+/* --- Main area --- */
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);height:var(--topbar-h);padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+.topbar h1{font-size:22px;font-weight:700}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.content{padding:28px 32px 48px;flex:1}
+
+/* ============ BOTONES ============ */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:var(--radius);transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-dark);box-shadow:0 8px 20px -10px rgba(215,25,32,.5)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--ink-soft)}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--bg);border-color:var(--ink)}
+.btn-danger{background:#fff;color:var(--red);border:1px solid var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{padding:7px 12px;font-size:10px;letter-spacing:.12em}
+.btn[disabled]{opacity:.5;cursor:not-allowed;pointer-events:none}
+
+/* ============ CARDS & STATS ============ */
+.card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--line-soft)}
+.card-head{padding:18px 22px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center}
+.card-head h3{font-size:18px;font-weight:700}
+.card-body{padding:22px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.stat{background:#fff;padding:22px;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--line-soft);position:relative;overflow:hidden;transition:transform var(--t-base) var(--ease),box-shadow var(--t-base) var(--ease)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-label{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px}
+.stat-value{font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:900;line-height:1;letter-spacing:-.02em}
+.stat-value.red{color:var(--red)}
+.stat-value.ok{color:var(--ok)}
+.stat-value.warn{color:var(--warn)}
+.stat-value.ink{color:var(--ink)}
+.stat-sub{font-size:12px;color:var(--ink-mid);margin-top:6px}
+.stat::after{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:var(--red);opacity:.04;border-radius:50%;transform:translate(30%,-30%)}
+
+/* ============ TABLE / LIST ============ */
+.filters-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;align-items:center;background:#fff;padding:14px 18px;border-radius:var(--radius-lg);border:1px solid var(--line-soft)}
+.filters-bar input[type="search"]{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:13px;transition:border-color var(--t-fast) var(--ease)}
+.filters-bar input[type="search"]:focus{outline:none;border-color:var(--red)}
+.filters-bar select{padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;font-size:13px;cursor:pointer}
+.filters-bar select:focus{outline:none;border-color:var(--red)}
+
+.table-wrap{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--line-soft);overflow:hidden}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable thead th{background:var(--bg);text-align:left;padding:12px 16px;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-mid);border-bottom:1px solid var(--line)}
+.ptable tbody td{padding:14px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.ptable tbody tr{transition:background var(--t-fast) var(--ease)}
+.ptable tbody tr:hover{background:var(--bg-soft)}
+.ptable tbody tr:last-child td{border-bottom:none}
+.ptable .thumb{width:60px;height:45px;object-fit:cover;border-radius:3px;background:#eee}
+.ptable .title-cell{font-weight:600}
+.ptable .title-cell small{display:block;font-weight:400;color:var(--ink-light);font-size:11px;margin-top:2px}
+.ptable .price{font-weight:700;white-space:nowrap}
+.ptable .actions{text-align:right;white-space:nowrap}
+.ptable .actions .btn{margin-left:4px}
+
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.status-pill .dot{width:6px;height:6px;border-radius:50%}
+.status-pill.disponible{background:#e8f6ee;color:var(--ok)}
+.status-pill.disponible .dot{background:var(--ok)}
+.status-pill.reservado{background:#fef5e2;color:#9c6500}
+.status-pill.reservado .dot{background:var(--warn)}
+.status-pill.vendido{background:#f4f4f4;color:var(--ink-mid)}
+.status-pill.vendido .dot{background:var(--ink-mid)}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--ink-light)}
+.empty-state h3{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.empty-state p{margin-bottom:20px}
+
+/* ============ FORM ============ */
+.form-wrap{display:grid;grid-template-columns:220px 1fr;gap:28px}
+.form-tabs{position:sticky;top:calc(var(--topbar-h) + 20px);align-self:start;background:#fff;border-radius:var(--radius-lg);border:1px solid var(--line-soft);overflow:hidden}
+.form-tabs button{display:block;width:100%;padding:12px 18px;text-align:left;font-size:13px;font-weight:500;color:var(--ink-mid);border-bottom:1px solid var(--line-soft);transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.form-tabs button:last-child{border-bottom:none}
+.form-tabs button:hover{background:var(--bg-soft);color:var(--ink)}
+.form-tabs button.is-active{background:var(--ink);color:#fff;font-weight:600}
+.form-tabs button .step-num{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;background:var(--bg);color:var(--ink-mid);border-radius:50%;font-size:11px;font-weight:700;margin-right:10px}
+.form-tabs button.is-active .step-num{background:var(--red);color:#fff}
+
+.form-main{min-width:0;display:flex;flex-direction:column;gap:16px}
+.form-section{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--line-soft);padding:28px;display:none}
+.form-section.is-visible{display:block;animation:fadeIn .3s var(--ease)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.form-section h2{font-size:22px;font-weight:700;margin-bottom:6px}
+.form-section .sub{color:var(--ink-mid);font-size:13px;margin-bottom:24px}
+
+.form-row{display:grid;gap:16px;margin-bottom:16px}
+.form-row.cols-2{grid-template-columns:1fr 1fr}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;min-width:0}
+.field label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mid);margin-bottom:6px}
+.field label .req{color:var(--red);margin-left:3px}
+.field input,.field textarea,.field select{padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease);width:100%}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px var(--red-tint)}
+.field textarea{resize:vertical;min-height:120px;font-family:inherit;line-height:1.6}
+.field .hint{font-size:11px;color:var(--ink-light);margin-top:5px}
+.field .err-msg{font-size:12px;color:var(--red);margin-top:5px;display:none}
+.field.has-error input,.field.has-error textarea,.field.has-error select{border-color:var(--red)}
+.field.has-error .err-msg{display:block}
+.field .input-prefix{position:relative}
+.field .input-prefix input{padding-left:30px}
+.field .input-prefix::before{content:attr(data-prefix);position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-light);font-size:14px;pointer-events:none}
+.field-check{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg-soft);border-radius:var(--radius);cursor:pointer;transition:background var(--t-fast) var(--ease)}
+.field-check:hover{background:var(--bg)}
+.field-check input{width:18px;height:18px;cursor:pointer}
+.field-check label{margin:0;letter-spacing:0;font-size:13px;text-transform:none;color:var(--ink);font-weight:500;cursor:pointer}
+
+/* --- Dynamic KV / list rows --- */
+.kv-rows{display:flex;flex-direction:column;gap:8px}
+.kv-row{display:grid;grid-template-columns:1fr 1.5fr auto;gap:8px;align-items:center}
+.kv-row input{padding:9px 11px}
+.list-rows{display:flex;flex-direction:column;gap:8px}
+.list-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.btn-remove{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--red);border:1px solid var(--line);border-radius:var(--radius);font-size:16px;transition:all var(--t-fast) var(--ease);cursor:pointer}
+.btn-remove:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-add{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;color:var(--red);border:1px dashed var(--red);border-radius:var(--radius);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-top:8px;transition:background var(--t-fast) var(--ease)}
+.btn-add:hover{background:var(--red-tint)}
+
+/* --- Options grouping (dynamic) --- */
+.opt-group{background:var(--bg-soft);padding:16px;border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--line-soft)}
+.opt-group-head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.opt-group-head input{flex:1;padding:9px 11px;font-weight:600}
+.opt-group .list-rows{margin-top:8px}
+
+/* --- Drive modes --- */
+.mode-row{display:grid;grid-template-columns:160px 1fr auto;gap:8px;align-items:center}
+
+/* --- Tech data --- */
+.tech-group{background:var(--bg-soft);padding:16px;border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--line-soft)}
+.tech-group-title{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mid);margin-bottom:12px}
+
+/* --- Photo uploader --- */
+.photo-dropzone{border:2px dashed var(--line);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;background:var(--bg-soft);cursor:pointer;transition:border-color var(--t-base) var(--ease),background var(--t-base) var(--ease)}
+.photo-dropzone:hover,.photo-dropzone.is-drag{border-color:var(--red);background:var(--red-tint)}
+.photo-dropzone p{color:var(--ink-mid);margin-bottom:4px}
+.photo-dropzone p.main{font-size:15px;font-weight:600;color:var(--ink)}
+.photo-dropzone small{font-size:11px;color:var(--ink-light)}
+.photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px}
+.photo-tile{position:relative;aspect-ratio:4/3;background:#eee;border-radius:var(--radius);overflow:hidden;cursor:grab;border:2px solid transparent;transition:border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.photo-tile img{width:100%;height:100%;object-fit:cover}
+.photo-tile.is-hero{border-color:var(--red)}
+.photo-tile.dragging{opacity:.4}
+.photo-tile .hero-badge{position:absolute;top:6px;left:6px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:3px 7px;letter-spacing:.1em;text-transform:uppercase;border-radius:3px}
+.photo-tile .photo-actions{position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+.photo-tile:hover .photo-actions{opacity:1}
+.photo-tile .photo-actions button{background:rgba(255,255,255,.95);border:none;width:26px;height:26px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:background var(--t-fast) var(--ease)}
+.photo-tile .photo-actions button:hover{background:#fff}
+.photo-tile .photo-actions .del:hover{background:var(--red);color:#fff}
+.photo-tile .idx{position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px}
+
+/* --- Form footer --- */
+.form-footer{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;background:#fff;border:1px solid var(--line-soft);border-radius:var(--radius-lg);position:sticky;bottom:20px;box-shadow:var(--shadow);z-index:10}
+.form-footer .left{display:flex;gap:10px;align-items:center}
+.form-footer .left .draft-info{font-size:11px;color:var(--ink-light)}
+.form-footer .right{display:flex;gap:10px}
+
+/* ============ CONFIG VIEW ============ */
+.config-grid{display:grid;grid-template-columns:1fr;gap:20px;max-width:860px}
+.config-section{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--line-soft);padding:28px}
+.config-section h2{font-size:22px;margin-bottom:4px}
+.config-section .sub{color:var(--ink-mid);font-size:13px;margin-bottom:20px}
+
+/* ============ TOAST ============ */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{background:var(--ink);color:#fff;padding:14px 20px;border-radius:var(--radius);font-size:13px;max-width:360px;box-shadow:var(--shadow-lg);animation:toastIn .35s var(--ease);pointer-events:auto;display:flex;align-items:center;gap:10px}
+.toast.ok{background:var(--ok)}
+.toast.err{background:var(--red)}
+.toast.warn{background:var(--warn);color:var(--ink)}
+.toast .close-x{background:none;border:none;color:inherit;cursor:pointer;opacity:.7;font-size:16px;margin-left:4px}
+.toast .close-x:hover{opacity:1}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.toast.leaving{animation:toastOut .3s var(--ease) forwards}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+/* ============ MODAL ============ */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-backdrop.open{display:flex;animation:fadeIn .25s var(--ease)}
+.modal{background:#fff;border-radius:var(--radius-lg);max-width:480px;width:100%;padding:28px;animation:slideUp .3s var(--ease)}
+.modal h3{font-size:20px;margin-bottom:10px}
+.modal p{color:var(--ink-mid);margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:960px){
+  .form-wrap{grid-template-columns:1fr}
+  .form-tabs{position:static;display:flex;overflow-x:auto}
+  .form-tabs button{border-bottom:none;border-right:1px solid var(--line-soft);white-space:nowrap}
+}
+@media (max-width:768px){
+  :root{--sidebar-w:72px}
+  .sidebar-brand h1{font-size:14px}
+  .sidebar-brand small,.sidebar nav a span,.sidebar nav .section-title,.sidebar-footer .user,.sidebar-footer .mode-chip{display:none}
+  .sidebar nav a{justify-content:center;padding:11px 0}
+  .sidebar-footer{padding:10px}
+  .sidebar-footer .btn-logout{padding:9px;font-size:10px}
+  .topbar{padding:0 16px}
+  .content{padding:20px 16px 60px}
+  .form-row.cols-2,.form-row.cols-3,.form-row.cols-4{grid-template-columns:1fr}
+  .ptable thead{display:none}
+  .ptable tbody tr{display:block;padding:14px;border-bottom:8px solid var(--bg)}
+  .ptable tbody td{display:block;border:none;padding:4px 0}
+  .ptable .actions{text-align:left;margin-top:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <h1>GP<span class="red">·</span>MOTORS</h1>
+      <small>Panel de Administración</small>
+    </div>
+    <form id="login-form" autocomplete="off">
+      <label>
+        <span>Usuario / Email</span>
+        <input type="text" id="login-user" required autocomplete="username" value="admin">
+      </label>
+      <label>
+        <span>Contraseña</span>
+        <input type="password" id="login-pass" required autocomplete="current-password">
+      </label>
+      <button type="button" class="login-btn" id="login-btn">Ingresar</button>
+    </form>
+    <p class="login-status" id="login-status"></p>
+    <div class="login-help">
+      <strong>Modo local activo</strong><br>
+      Primer acceso: usuario <code>admin</code> · clave <code>gpmotors2026</code><br>
+      Cambia la clave en Configuración después de ingresar.
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app" hidden>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>GP<span class="red">·</span>MOTORS</h1>
+      <small>Admin</small>
+    </div>
+    <nav id="nav">
+      <a data-view="dashboard" class="is-active">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a data-view="products">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>
+        <span>Vehículos</span>
+      </a>
+      <a data-view="product-form" data-new="1">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span>Nuevo vehículo</span>
+      </a>
+      <span class="section-title">Sistema</span>
+      <a data-view="config">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>Configuración</span>
+      </a>
+      <a data-view="export">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Exportar / Importar</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user" id="sb-user">admin</div>
+      <div class="mode-chip" id="sb-mode"><span class="dot"></span><span id="sb-mode-text">Modo local</span></div>
+      <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <h1 class="view-title" id="view-title">Dashboard</h1>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Modal container (reusable) -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<!-- ============ JAVASCRIPT (3 módulos) ============ -->
+<script type="module" id="admin-core">
+// =========================================================
+// GP MOTORS ADMIN — Core (Store, Auth, Router, Utils)
+// =========================================================
+
+// ---------- UTILS ----------
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const e = (str) => String(str??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (n) => n ? new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}).format(n) : '—';
+const relTime = (iso) => {
+  if (!iso) return '—';
+  const d = new Date(iso), now = new Date();
+  const diff = Math.round((now-d)/1000);
+  if (diff < 60) return 'hace un momento';
+  if (diff < 3600) return `hace ${Math.round(diff/60)} min`;
+  if (diff < 86400) return `hace ${Math.round(diff/3600)} h`;
+  if (diff < 2592000) return `hace ${Math.round(diff/86400)} d`;
+  return d.toLocaleDateString('es-CO');
+};
+const slugify = (txt) => String(txt||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60);
+const uid = () => 'gp-'+Math.random().toString(36).slice(2,8)+'-'+Date.now().toString(36).slice(-4);
+// Hash simple que funciona en cualquier contexto (file://, http, https).
+// En modo local es solo ofuscación — la seguridad real llega con Supabase Auth.
+async function sha256(str) {
+  // Intentar crypto.subtle (más robusto en https/localhost)
+  try {
+    if (crypto?.subtle?.digest) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  } catch(_) {}
+  // Fallback: FNV-1a 64 bits en hex (suficiente para comparación local)
+  let h1 = 0xcbf29ce4, h2 = 0x84222325;
+  for (let i=0; i<str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 ^= c; h2 ^= c;
+    h1 = Math.imul(h1, 0x01000193) >>> 0;
+    h2 = Math.imul(h2, 0x01000193) >>> 0;
+  }
+  return 'fnv_' + h1.toString(16).padStart(8,'0') + h2.toString(16).padStart(8,'0') + '_' + str.length;
+}
+window.$ = $; window.$$ = $$; window.gpUtils = { e, money, relTime, slugify, uid, sha256 };
+
+// ---------- TOAST ----------
+function toast(msg, type='', ms=3200) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${e(msg)}</span><button class="close-x" aria-label="Cerrar">×</button>`;
+  $('#toast-container').appendChild(el);
+  const close = () => { el.classList.add('leaving'); setTimeout(()=>el.remove(), 300); };
+  el.querySelector('.close-x').addEventListener('click', close);
+  setTimeout(close, ms);
+}
+window.toast = toast;
+
+// ---------- MODAL ----------
+function modal({title, body, confirmText='Confirmar', confirmClass='btn-primary', cancelText='Cancelar', onConfirm}) {
+  const backdrop = $('#modal-backdrop'), box = $('#modal-content');
+  box.innerHTML = `
+    <h3>${e(title)}</h3>
+    <p>${body}</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-action="cancel">${e(cancelText)}</button>
+      <button class="btn ${confirmClass}" data-action="confirm">${e(confirmText)}</button>
+    </div>`;
+  backdrop.classList.add('open');
+  const close = () => backdrop.classList.remove('open');
+  box.querySelector('[data-action="cancel"]').onclick = close;
+  box.querySelector('[data-action="confirm"]').onclick = () => { close(); onConfirm && onConfirm(); };
+  backdrop.onclick = (ev) => { if (ev.target === backdrop) close(); };
+}
+window.modal = modal;
+
+// =========================================================
+// STORE — abstrae localStorage o Supabase
+// =========================================================
+const STORAGE_KEYS = {
+  products: 'gpmotors_products',
+  config:   'gpmotors_config',
+  session:  'gpmotors_session',
+  auth:     'gpmotors_auth',
+  draft:    'gpmotors_draft'
+};
+
+const Store = {
+  mode: 'local', // 'local' | 'supabase'
+  supabase: null,
+
+  async init() {
+    const cfg = this.getConfig();
+    if (cfg.supabaseUrl && cfg.supabaseKey) {
+      try {
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+        this.supabase = createClient(cfg.supabaseUrl, cfg.supabaseKey);
+        this.mode = 'supabase';
+      } catch (err) {
+        console.warn('Supabase no disponible, usando modo local:', err);
+        this.mode = 'local';
+      }
+    }
+    this._renderModeChip();
+  },
+
+  _renderModeChip() {
+    const chip = $('#sb-mode'), txt = $('#sb-mode-text');
+    if (!chip) return;
+    if (this.mode === 'supabase') {
+      chip.classList.add('live');
+      txt.textContent = 'Supabase conectado';
+    } else {
+      chip.classList.remove('live');
+      txt.textContent = 'Modo local';
+    }
+  },
+
+  // ---------- CONFIG ----------
+  getConfig() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.config)) || {}; }
+    catch { return {}; }
+  },
+  saveConfig(cfg) {
+    const current = this.getConfig();
+    localStorage.setItem(STORAGE_KEYS.config, JSON.stringify({...current, ...cfg}));
+  },
+
+  // ---------- PRODUCTS ----------
+  async list() {
+    if (this.mode === 'supabase') {
+      const { data, error } = await this.supabase
+        .from('products').select('*').order('created_at', { ascending: false });
+      if (error) { toast('Error al cargar: ' + error.message, 'err'); return []; }
+      return data || [];
+    }
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.products)) || []; }
+    catch { return []; }
+  },
+  async get(id) {
+    const items = await this.list();
+    return items.find(p => p.id === id);
+  },
+  async save(product) {
+    product.updated_at = new Date().toISOString();
+    if (!product.created_at) product.created_at = product.updated_at;
+    if (this.mode === 'supabase') {
+      const { error } = await this.supabase.from('products').upsert(product);
+      if (error) throw new Error(error.message);
+    } else {
+      const items = await this.list();
+      const idx = items.findIndex(p => p.id === product.id);
+      if (idx >= 0) items[idx] = product; else items.unshift(product);
+      localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(items));
+    }
+    return product;
+  },
+  async remove(id) {
+    if (this.mode === 'supabase') {
+      const { error } = await this.supabase.from('products').delete().eq('id', id);
+      if (error) throw new Error(error.message);
+    } else {
+      const items = (await this.list()).filter(p => p.id !== id);
+      localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(items));
+    }
+  },
+  async updateStatus(id, status) {
+    const p = await this.get(id);
+    if (!p) return;
+    p.status = status;
+    await this.save(p);
+  },
+
+  // ---------- DRAFT ----------
+  saveDraft(data) {
+    localStorage.setItem(STORAGE_KEYS.draft, JSON.stringify({...data, _savedAt: Date.now()}));
+  },
+  getDraft() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.draft)); }
+    catch { return null; }
+  },
+  clearDraft() { localStorage.removeItem(STORAGE_KEYS.draft); },
+};
+window.Store = Store;
+
+// =========================================================
+// AUTH — simple en modo local, Supabase Auth cuando conecta
+// =========================================================
+const Auth = {
+  DEFAULT_USER: 'admin',
+  DEFAULT_PASS_HASH: null, // se calcula al cargar
+  SESSION_HOURS: 12,
+
+  async init() {
+    // Hash por defecto para 'gpmotors2026'
+    this.DEFAULT_PASS_HASH = await sha256('gpmotors2026');
+  },
+
+  async login(user, pass) {
+    if (Store.mode === 'supabase') {
+      // user aquí es email
+      const { data, error } = await Store.supabase.auth.signInWithPassword({ email: user, password: pass });
+      if (error) return { ok: false, error: error.message };
+      this._setSession({ user: data.user.email, mode: 'supabase' });
+      return { ok: true };
+    }
+    // Modo local
+    const cfg = Store.getConfig();
+    const expectedUser = (cfg.adminUser || this.DEFAULT_USER).toLowerCase();
+    const expectedHash = cfg.adminPassHash || this.DEFAULT_PASS_HASH;
+    const inputHash = await sha256(pass);
+    if (user.toLowerCase() === expectedUser && inputHash === expectedHash) {
+      this._setSession({ user, mode: 'local' });
+      return { ok: true };
+    }
+    return { ok: false, error: 'Usuario o contraseña incorrectos' };
+  },
+
+  async changePassword(oldPass, newPass) {
+    const cfg = Store.getConfig();
+    const expectedHash = cfg.adminPassHash || this.DEFAULT_PASS_HASH;
+    const oldHash = await sha256(oldPass);
+    if (oldHash !== expectedHash) return { ok: false, error: 'La contraseña actual no coincide' };
+    if (newPass.length < 6) return { ok: false, error: 'La nueva contraseña debe tener mínimo 6 caracteres' };
+    const newHash = await sha256(newPass);
+    Store.saveConfig({ adminPassHash: newHash });
+    return { ok: true };
+  },
+
+  async changeUsername(newUser) {
+    if (!newUser || newUser.length < 3) return { ok: false, error: 'Mínimo 3 caracteres' };
+    Store.saveConfig({ adminUser: newUser.toLowerCase() });
+    const s = this.getSession();
+    if (s) this._setSession({ ...s, user: newUser });
+    return { ok: true };
+  },
+
+  logout() {
+    localStorage.removeItem(STORAGE_KEYS.session);
+    if (Store.mode === 'supabase') Store.supabase.auth.signOut();
+    location.reload();
+  },
+
+  _setSession(data) {
+    const expires = Date.now() + this.SESSION_HOURS * 3600 * 1000;
+    localStorage.setItem(STORAGE_KEYS.session, JSON.stringify({ ...data, expires }));
+  },
+
+  getSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.session));
+      if (!s || s.expires < Date.now()) return null;
+      return s;
+    } catch { return null; }
+  },
+
+  isAuthed() { return !!this.getSession(); }
+};
+window.Auth = Auth;
+
+// =========================================================
+// ROUTER — vistas internas
+// =========================================================
+const Router = {
+  current: 'dashboard',
+  _handlers: {},
+
+  register(view, handler) { this._handlers[view] = handler; },
+
+  async go(view, params={}) {
+    this.current = view;
+    $$('#nav a').forEach(a => a.classList.toggle('is-active', a.dataset.view === view));
+    const titles = {
+      dashboard: 'Dashboard',
+      products: 'Vehículos',
+      'product-form': params.id ? 'Editar vehículo' : 'Nuevo vehículo',
+      config: 'Configuración',
+      export: 'Exportar / Importar'
+    };
+    $('#view-title').textContent = titles[view] || view;
+    $('#topbar-actions').innerHTML = '';
+    $('#content').innerHTML = '<div style="padding:40px;text-align:center;color:#999">Cargando...</div>';
+    const handler = this._handlers[view];
+    if (handler) await handler(params);
+    else $('#content').innerHTML = '<p style="padding:20px">Vista no encontrada.</p>';
+  }
+};
+window.Router = Router;
+
+// =========================================================
+// BOOTSTRAP
+// =========================================================
+async function boot() {
+  const loginScreen = $('#login-screen');
+  const app = $('#app');
+
+  function showApp() {
+    try {
+      loginScreen.style.display = 'none';
+      app.hidden = false;
+      app.style.display = 'grid'; // asegurar visibilidad aunque [hidden] falle
+      const s = Auth.getSession();
+      if (s) $('#sb-user').textContent = s.user;
+      Router.go('dashboard');
+    } catch(err) {
+      console.error('[GPADMIN] showApp:', err);
+      toast('Error al cargar el panel: ' + err.message, 'err', 6000);
+    }
+  }
+
+  async function doLogin(ev) {
+    if (ev) ev.preventDefault();
+    const user = $('#login-user').value.trim();
+    const pass = $('#login-pass').value;
+    const status = $('#login-status');
+    const btn = $('#login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Validando...';
+    status.textContent = '';
+    status.className = 'login-status';
+    try {
+      const res = await Auth.login(user, pass);
+      btn.disabled = false;
+      btn.textContent = 'Ingresar';
+      if (res.ok) {
+        status.textContent = 'Ingreso correcto.';
+        status.classList.add('ok');
+        setTimeout(showApp, 250);
+      } else {
+        status.textContent = res.error || 'Error de autenticación';
+        status.classList.add('err');
+        $('#login-pass').value = '';
+        $('#login-pass').focus();
+      }
+    } catch (err) {
+      console.error('[GPADMIN] login error:', err);
+      btn.disabled = false;
+      btn.textContent = 'Ingresar';
+      status.textContent = 'Error inesperado: ' + err.message;
+      status.classList.add('err');
+    }
+    return false;
+  }
+
+  // ============ REGISTRAR LISTENERS PRIMERO (independiente de init async) ============
+  $('#login-form').addEventListener('submit', doLogin);
+  $('#login-btn').addEventListener('click', doLogin); // doble seguridad por si el submit falla
+  // Enter en campo de contraseña dispara login
+  $('#login-pass').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') doLogin(ev); });
+
+  $('#btn-logout').addEventListener('click', () => {
+    modal({
+      title: '¿Cerrar sesión?',
+      body: 'Tendrás que ingresar tu usuario y contraseña nuevamente.',
+      confirmText: 'Cerrar sesión',
+      confirmClass: 'btn-dark',
+      onConfirm: () => Auth.logout()
+    });
+  });
+
+  $('#nav').addEventListener('click', (ev) => {
+    const a = ev.target.closest('a[data-view]');
+    if (!a) return;
+    ev.preventDefault();
+    const view = a.dataset.view;
+    const params = a.dataset.new ? { new: true } : {};
+    Router.go(view, params);
+  });
+
+  // ============ INICIALIZAR (si falla, el login sigue funcionando) ============
+  try {
+    await Store.init();
+  } catch(err) {
+    console.warn('[GPADMIN] Store.init falló, continuando en modo local:', err);
+    Store.mode = 'local';
+  }
+  try {
+    await Auth.init();
+  } catch(err) {
+    console.warn('[GPADMIN] Auth.init falló:', err);
+  }
+
+  // Decidir pantalla
+  if (Auth.isAuthed()) {
+    showApp();
+  } else {
+    loginScreen.style.display = 'flex';
+    app.hidden = true;
+    app.style.display = 'none';
+    $('#login-user').focus();
+  }
+
+  console.log('[GPADMIN] Listo. Modo:', Store.mode);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+// Fallback por si DOMContentLoaded ya pasó
+if (document.readyState !== 'loading') boot();
+</script>
+
+
+<script type="module" id="admin-views">
+// ============================================================
+// GP MOTORS ADMIN — Vistas (Dashboard, Products, Form, Config)
+// ============================================================
+const { e, money, relTime, slugify, uid } = window.gpUtils;
+
+// ============================================================
+// VIEW: DASHBOARD
+// ============================================================
+Router.register('dashboard', async () => {
+  const items = await Store.list();
+  const total = items.length;
+  const disp = items.filter(p => p.status === 'disponible').length;
+  const res = items.filter(p => p.status === 'reservado').length;
+  const ven = items.filter(p => p.status === 'vendido').length;
+  const recent = [...items].sort((a,b)=>(b.updated_at||b.created_at||'').localeCompare(a.updated_at||a.created_at||'')).slice(0,5);
+
+  $('#topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="Router.go('product-form',{new:true})">+ Nuevo vehículo</button>`;
+
+  $('#content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Total en inventario</div><div class="stat-value ink">${total}</div><div class="stat-sub">vehículos registrados</div></div>
+      <div class="stat"><div class="stat-label">Disponibles</div><div class="stat-value ok">${disp}</div><div class="stat-sub">listos para venta</div></div>
+      <div class="stat"><div class="stat-label">Reservados</div><div class="stat-value warn">${res}</div><div class="stat-sub">en proceso</div></div>
+      <div class="stat"><div class="stat-label">Vendidos</div><div class="stat-value red">${ven}</div><div class="stat-sub">entregados</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Últimos cambios</h3>
+        <button class="btn btn-ghost btn-sm" onclick="Router.go('products')">Ver todos</button>
+      </div>
+      <div class="card-body" style="padding:0">
+        ${recent.length ? `
+        <table class="ptable">
+          <tbody>
+            ${recent.map(p => `
+              <tr>
+                <td style="width:80px"><img src="${e(p.image_urls?.[0]||'data:image/gif;base64,R0lGODlhAQABAIAAAO/v7wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==')}" class="thumb" alt=""></td>
+                <td class="title-cell">${e(p.title)}<small>${e(p.brand)} · ${p.year||'—'}</small></td>
+                <td><span class="status-pill ${e(p.status)}"><span class="dot"></span>${e(p.status)}</span></td>
+                <td class="price">${money(p.price)}</td>
+                <td style="color:#999;font-size:12px">${relTime(p.updated_at||p.created_at)}</td>
+                <td class="actions"><button class="btn btn-ghost btn-sm" onclick="Router.go('product-form',{id:'${e(p.id)}'})">Editar</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : `
+        <div class="empty-state">
+          <h3>Aún no hay vehículos</h3>
+          <p>Agrega tu primer vehículo para comenzar.</p>
+          <button class="btn btn-primary" onclick="Router.go('product-form',{new:true})">+ Nuevo vehículo</button>
+        </div>`}
+      </div>
+    </div>
+  `;
+});
+
+// ============================================================
+// VIEW: PRODUCTS LIST
+// ============================================================
+Router.register('products', async () => {
+  const items = await Store.list();
+
+  $('#topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="Router.go('product-form',{new:true})">+ Nuevo vehículo</button>`;
+
+  const render = (filtered) => {
+    const tbody = $('#products-tbody');
+    if (!tbody) return;
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><h3>Sin resultados</h3><p>Ajusta los filtros o agrega un nuevo vehículo.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = filtered.map(p => `
+      <tr data-id="${e(p.id)}">
+        <td style="width:80px"><img src="${e(p.image_urls?.[0]||'data:image/gif;base64,R0lGODlhAQABAIAAAO/v7wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==')}" class="thumb" alt=""></td>
+        <td class="title-cell">${e(p.title)}<small>${e(p.brand)} ${p.model?'· '+e(p.model):''} · ${p.year||'—'}</small></td>
+        <td>${e({carro:'Carro',moto:'Moto',reloj:'Reloj'}[p.category]||p.category||'')}</td>
+        <td>
+          <select class="status-select" data-id="${e(p.id)}" style="padding:5px 8px;border:1px solid #ddd;border-radius:3px;font-size:12px">
+            <option value="disponible" ${p.status==='disponible'?'selected':''}>Disponible</option>
+            <option value="reservado" ${p.status==='reservado'?'selected':''}>Reservado</option>
+            <option value="vendido" ${p.status==='vendido'?'selected':''}>Vendido</option>
+          </select>
+        </td>
+        <td class="price">${money(p.price)}</td>
+        <td class="actions">
+          <button class="btn btn-ghost btn-sm" data-act="edit" data-id="${e(p.id)}">Editar</button>
+          <button class="btn btn-danger btn-sm" data-act="del" data-id="${e(p.id)}">Eliminar</button>
+        </td>
+      </tr>`).join('');
+  };
+
+  $('#content').innerHTML = `
+    <div class="filters-bar">
+      <input type="search" id="f-search" placeholder="Buscar por título, marca, modelo...">
+      <select id="f-category">
+        <option value="">Todas las categorías</option>
+        <option value="carro">Carros</option>
+        <option value="moto">Motos</option>
+        <option value="reloj">Relojes</option>
+      </select>
+      <select id="f-status">
+        <option value="">Todos los estados</option>
+        <option value="disponible">Disponibles</option>
+        <option value="reservado">Reservados</option>
+        <option value="vendido">Vendidos</option>
+      </select>
+      <span style="font-size:12px;color:#999;margin-left:auto" id="f-count">${items.length} vehículos</span>
+    </div>
+    <div class="table-wrap">
+      <table class="ptable">
+        <thead><tr>
+          <th></th><th>Vehículo</th><th>Categoría</th><th>Estado</th><th>Precio</th><th></th>
+        </tr></thead>
+        <tbody id="products-tbody"></tbody>
+      </table>
+    </div>`;
+
+  const apply = () => {
+    const q = $('#f-search').value.toLowerCase().trim();
+    const cat = $('#f-category').value;
+    const st = $('#f-status').value;
+    const filtered = items.filter(p => {
+      if (cat && p.category !== cat) return false;
+      if (st && p.status !== st) return false;
+      if (q) {
+        const hay = `${p.title} ${p.brand} ${p.model}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    $('#f-count').textContent = `${filtered.length} de ${items.length} vehículos`;
+    render(filtered);
+  };
+
+  ['#f-search','#f-category','#f-status'].forEach(sel => $(sel).addEventListener('input', apply));
+  render(items);
+
+  // Delegación de clicks
+  $('#products-tbody').addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.act === 'edit') Router.go('product-form', { id });
+    if (btn.dataset.act === 'del') {
+      const p = await Store.get(id);
+      modal({
+        title: '¿Eliminar vehículo?',
+        body: `Vas a eliminar <strong>${e(p?.title||id)}</strong>. Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        confirmClass: 'btn-danger',
+        onConfirm: async () => {
+          try {
+            await Store.remove(id);
+            toast('Vehículo eliminado', 'ok');
+            Router.go('products');
+          } catch (err) { toast('Error: ' + err.message, 'err'); }
+        }
+      });
+    }
+  });
+
+  // Cambio de estado inline
+  $('#products-tbody').addEventListener('change', async (ev) => {
+    const sel = ev.target.closest('.status-select');
+    if (!sel) return;
+    try {
+      await Store.updateStatus(sel.dataset.id, sel.value);
+      toast('Estado actualizado', 'ok', 2000);
+    } catch (err) { toast('Error: ' + err.message, 'err'); }
+  });
+});
+
+// ============================================================
+// VIEW: CONFIG
+// ============================================================
+Router.register('config', async () => {
+  const cfg = Store.getConfig();
+  $('#topbar-actions').innerHTML = '';
+  $('#content').innerHTML = `
+    <div class="config-grid">
+
+      <div class="config-section">
+        <h2>Credenciales de administración</h2>
+        <p class="sub">Cambia el usuario y la contraseña para acceder al panel. La clave se guarda cifrada (SHA-256) solo en este navegador.</p>
+        <div class="form-row cols-2">
+          <div class="field">
+            <label>Usuario actual</label>
+            <input type="text" id="cfg-user" value="${e(cfg.adminUser || 'admin')}">
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:10px">
+          <button class="btn btn-dark" id="save-user">Guardar usuario</button>
+        </div>
+        <hr style="margin:24px 0;border:none;border-top:1px solid #eee">
+        <div class="form-row cols-3">
+          <div class="field"><label>Contraseña actual</label><input type="password" id="cfg-pass-old"></div>
+          <div class="field"><label>Nueva contraseña</label><input type="password" id="cfg-pass-new"></div>
+          <div class="field"><label>Confirmar</label><input type="password" id="cfg-pass-new2"></div>
+        </div>
+        <div style="margin-top:10px"><button class="btn btn-dark" id="save-pass">Cambiar contraseña</button></div>
+      </div>
+
+      <div class="config-section">
+        <h2>Conexión a Supabase</h2>
+        <p class="sub">Cuando configures estos campos, el panel pasará automáticamente a modo remoto y los datos se sincronizarán entre todos los asesores. Mientras tanto, el panel usa el almacenamiento local del navegador.</p>
+        <div class="form-row cols-2">
+          <div class="field">
+            <label>Supabase URL</label>
+            <input type="url" id="cfg-sb-url" value="${e(cfg.supabaseUrl||'')}" placeholder="https://xxx.supabase.co">
+          </div>
+          <div class="field">
+            <label>Supabase anon key</label>
+            <input type="password" id="cfg-sb-key" value="${e(cfg.supabaseKey||'')}" placeholder="eyJhbGci...">
+          </div>
+        </div>
+        <div class="field-check" style="margin:16px 0">
+          <input type="checkbox" id="cfg-sb-enabled" ${cfg.supabaseUrl?'checked':''}>
+          <label for="cfg-sb-enabled">Usar Supabase como backend principal (requiere recargar la página)</label>
+        </div>
+        <button class="btn btn-dark" id="save-sb">Guardar configuración</button>
+      </div>
+
+      <div class="config-section">
+        <h2>Datos del negocio</h2>
+        <p class="sub">Información que puedes exportar al index.html público. Esto se usará para los botones de contacto y datos de la ficha.</p>
+        <div class="form-row cols-2">
+          <div class="field"><label>Nombre comercial</label><input type="text" id="cfg-biz-name" value="${e(cfg.bizName||'GP MOTORS')}"></div>
+          <div class="field"><label>Dirección</label><input type="text" id="cfg-biz-addr" value="${e(cfg.bizAddr||'Carrera 6 #31-14 San Simón parte alta, Ibagué')}"></div>
+        </div>
+        <div class="form-row cols-3">
+          <div class="field"><label>Asesor 1 (WhatsApp)</label><input type="tel" id="cfg-ws-1" value="${e(cfg.ws1||'+573104478680')}"></div>
+          <div class="field"><label>Asesor 2 (WhatsApp)</label><input type="tel" id="cfg-ws-2" value="${e(cfg.ws2||'+573102226068')}"></div>
+          <div class="field"><label>Asesor 3 (WhatsApp)</label><input type="tel" id="cfg-ws-3" value="${e(cfg.ws3||'+573229000063')}"></div>
+        </div>
+        <button class="btn btn-dark" id="save-biz" style="margin-top:10px">Guardar</button>
+      </div>
+
+      <div class="config-section" style="border:1px solid #fcd7da">
+        <h2 style="color:var(--red)">Zona de riesgo</h2>
+        <p class="sub">Esta acción borra todos los vehículos del almacenamiento local. No afecta Supabase.</p>
+        <button class="btn btn-danger" id="wipe-local">Borrar todos los datos locales</button>
+      </div>
+    </div>`;
+
+  $('#save-user').onclick = async () => {
+    const u = $('#cfg-user').value.trim();
+    const r = await Auth.changeUsername(u);
+    if (r.ok) { toast('Usuario actualizado', 'ok'); $('#sb-user').textContent = u; }
+    else toast(r.error, 'err');
+  };
+  $('#save-pass').onclick = async () => {
+    const o = $('#cfg-pass-old').value, n = $('#cfg-pass-new').value, n2 = $('#cfg-pass-new2').value;
+    if (!o || !n) return toast('Completa todos los campos', 'err');
+    if (n !== n2) return toast('Las contraseñas nuevas no coinciden', 'err');
+    const r = await Auth.changePassword(o, n);
+    if (r.ok) { toast('Contraseña actualizada', 'ok'); ['#cfg-pass-old','#cfg-pass-new','#cfg-pass-new2'].forEach(x=>$(x).value=''); }
+    else toast(r.error, 'err');
+  };
+  $('#save-sb').onclick = () => {
+    const enabled = $('#cfg-sb-enabled').checked;
+    Store.saveConfig({
+      supabaseUrl: enabled ? $('#cfg-sb-url').value.trim() : '',
+      supabaseKey: enabled ? $('#cfg-sb-key').value.trim() : ''
+    });
+    toast('Configuración guardada. Recargando...', 'ok');
+    setTimeout(() => location.reload(), 1000);
+  };
+  $('#save-biz').onclick = () => {
+    Store.saveConfig({
+      bizName: $('#cfg-biz-name').value.trim(),
+      bizAddr: $('#cfg-biz-addr').value.trim(),
+      ws1: $('#cfg-ws-1').value.trim(),
+      ws2: $('#cfg-ws-2').value.trim(),
+      ws3: $('#cfg-ws-3').value.trim()
+    });
+    toast('Datos del negocio guardados', 'ok');
+  };
+  $('#wipe-local').onclick = () => {
+    modal({
+      title: '¿Borrar todos los datos locales?',
+      body: 'Se eliminarán todos los vehículos guardados en el navegador. Esto no se puede deshacer.',
+      confirmText: 'Sí, borrar todo',
+      confirmClass: 'btn-danger',
+      onConfirm: () => {
+        localStorage.removeItem('gpmotors_products');
+        localStorage.removeItem('gpmotors_draft');
+        toast('Datos locales eliminados', 'ok');
+        Router.go('dashboard');
+      }
+    });
+  };
+});
+
+// ============================================================
+// VIEW: EXPORT / IMPORT
+// ============================================================
+Router.register('export', async () => {
+  const items = await Store.list();
+  $('#topbar-actions').innerHTML = '';
+  $('#content').innerHTML = `
+    <div class="config-grid">
+      <div class="config-section">
+        <h2>Exportar catálogo</h2>
+        <p class="sub">${items.length} vehículos en el inventario. Puedes descargar un archivo JSON para hacer backup o generar el bloque de productos listo para pegar en el index.html público.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="dl-json">Descargar JSON completo</button>
+          <button class="btn btn-dark" id="dl-code">Generar código para index.html</button>
+          <button class="btn btn-ghost" id="copy-code">Copiar código al portapapeles</button>
+        </div>
+        <textarea id="code-output" style="width:100%;margin-top:20px;height:300px;font-family:ui-monospace,monospace;font-size:12px;padding:14px;border:1px solid #e4e6e8;border-radius:4px;background:#1a1a1a;color:#9bf" readonly placeholder="Haz clic en 'Generar código' para ver el bloque..."></textarea>
+      </div>
+
+      <div class="config-section">
+        <h2>Importar catálogo</h2>
+        <p class="sub">Carga un JSON de respaldo. Los productos se agregarán al catálogo actual; los que tengan el mismo id se sobreescribirán.</p>
+        <input type="file" id="import-file" accept="application/json" style="display:block;margin-bottom:14px">
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-dark" id="btn-import">Importar</button>
+          <button class="btn btn-danger" id="btn-import-replace">Reemplazar todo</button>
+        </div>
+        <p class="hint" style="margin-top:12px;color:#999;font-size:12px">Formato esperado: array JSON de productos (compatible con el export de este panel).</p>
+      </div>
+    </div>`;
+
+  $('#dl-json').onclick = () => {
+    const blob = new Blob([JSON.stringify(items, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `gpmotors-catalogo-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('JSON descargado', 'ok');
+  };
+  $('#dl-code').onclick = () => {
+    const code = buildIndexCode(items);
+    $('#code-output').value = code;
+    toast('Código generado', 'ok');
+  };
+  $('#copy-code').onclick = async () => {
+    const code = buildIndexCode(items);
+    try { await navigator.clipboard.writeText(code); toast('Código copiado al portapapeles', 'ok'); }
+    catch { $('#code-output').value = code; $('#code-output').select(); document.execCommand('copy'); toast('Código copiado', 'ok'); }
+  };
+  $('#btn-import').onclick = () => importJson(false);
+  $('#btn-import-replace').onclick = () => importJson(true);
+
+  async function importJson(replace) {
+    const file = $('#import-file').files?.[0];
+    if (!file) return toast('Selecciona un archivo', 'err');
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) throw new Error('El archivo no es un array de productos');
+      modal({
+        title: replace ? '¿Reemplazar todo el catálogo?' : '¿Importar ' + data.length + ' vehículos?',
+        body: replace ? 'Se borrarán los vehículos actuales y se cargarán los del archivo.' : 'Se agregarán al catálogo; los IDs duplicados se sobreescriben.',
+        confirmText: replace ? 'Sí, reemplazar' : 'Importar',
+        confirmClass: replace ? 'btn-danger' : 'btn-primary',
+        onConfirm: async () => {
+          if (replace) localStorage.setItem('gpmotors_products', '[]');
+          for (const p of data) {
+            if (!p.id) p.id = uid();
+            await Store.save(p);
+          }
+          toast(`${data.length} vehículos importados`, 'ok');
+          Router.go('products');
+        }
+      });
+    } catch (err) { toast('Error al leer el archivo: ' + err.message, 'err'); }
+  }
+});
+
+function buildIndexCode(items) {
+  const lines = items.map(p => {
+    const o = {...p};
+    delete o.updated_at;
+    return JSON.stringify(o);
+  });
+  return '/* === CATÁLOGO EXPORTADO desde el admin — ' + new Date().toISOString() + ' === */\n\n' +
+    'products = (() => {\n  const base = { condition:"nuevo", status:"disponible", featured:false };\n  return [\n    ' +
+    lines.map(l => '{...base, ' + l.slice(1,-1) + '}').join(',\n    ') +
+    '\n  ];\n})();';
+}
+</script>
+<script type="module" id="admin-form">
+// ============================================================
+// GP MOTORS ADMIN — Formulario de producto
+// ============================================================
+const { e, slugify, uid } = window.gpUtils;
+
+const BLANK_PRODUCT = () => ({
+  id: '',
+  slug: '',
+  category: 'carro',
+  title: '',
+  brand: '',
+  model: '',
+  year: null,
+  mileage: 0,
+  price: 0,
+  condition: 'nuevo',
+  status: 'disponible',
+  featured: false,
+  created_at: '',
+  image_urls: [],
+  description: '',
+  specs: {},
+  key_info: [],
+  options: {},
+  drive_modes: [],
+  technical_data: { Performance: [], Dimensions: [], Economy: [] },
+  disclaimer: ''
+});
+
+let currentProduct = null;
+let currentTab = 'basic';
+
+Router.register('product-form', async (params) => {
+  const isNew = params?.new || !params?.id;
+  if (isNew) {
+    const draft = Store.getDraft();
+    if (draft && !draft.id) {
+      modal({
+        title: '¿Retomar borrador?',
+        body: 'Tienes un vehículo que no terminaste de crear. ¿Quieres continuar donde lo dejaste?',
+        confirmText: 'Sí, continuar',
+        confirmClass: 'btn-primary',
+        cancelText: 'Empezar de cero',
+        onConfirm: () => { currentProduct = draft; renderForm(); }
+      });
+      currentProduct = BLANK_PRODUCT();
+    } else {
+      currentProduct = BLANK_PRODUCT();
+    }
+  } else {
+    const p = await Store.get(params.id);
+    if (!p) { toast('Vehículo no encontrado', 'err'); Router.go('products'); return; }
+    currentProduct = normalizeProduct(p);
+  }
+  renderForm();
+});
+
+function normalizeProduct(p) {
+  const base = BLANK_PRODUCT();
+  return {
+    ...base, ...p,
+    specs: p.specs || {},
+    key_info: Array.isArray(p.key_info) ? p.key_info : [],
+    options: p.options || {},
+    drive_modes: Array.isArray(p.drive_modes) ? p.drive_modes : [],
+    technical_data: {
+      Performance: p.technical_data?.Performance || [],
+      Dimensions: p.technical_data?.Dimensions || [],
+      Economy: p.technical_data?.Economy || []
+    },
+    image_urls: Array.isArray(p.image_urls) ? p.image_urls : []
+  };
+}
+
+function renderForm() {
+  $('#topbar-actions').innerHTML = `
+    <button class="btn btn-ghost" onclick="Router.go('products')">Cancelar</button>
+    <button class="btn btn-primary" id="btn-save-top">Guardar</button>`;
+  $('#content').innerHTML = `
+    <div class="form-wrap">
+      <aside class="form-tabs">
+        <button data-tab="basic" class="is-active"><span class="step-num">1</span>Básico</button>
+        <button data-tab="photos"><span class="step-num">2</span>Fotos</button>
+        <button data-tab="specs"><span class="step-num">3</span>Specs sidebar</button>
+        <button data-tab="key"><span class="step-num">4</span>Key Information</button>
+        <button data-tab="options"><span class="step-num">5</span>Equipamiento</button>
+        <button data-tab="modes"><span class="step-num">6</span>Modos de manejo</button>
+        <button data-tab="tech"><span class="step-num">7</span>Datos técnicos</button>
+        <button data-tab="descr"><span class="step-num">8</span>Descripción</button>
+      </aside>
+      <div class="form-main">
+        ${renderTabBasic()}
+        ${renderTabPhotos()}
+        ${renderTabSpecs()}
+        ${renderTabKey()}
+        ${renderTabOptions()}
+        ${renderTabModes()}
+        ${renderTabTech()}
+        ${renderTabDescr()}
+      </div>
+    </div>
+    <div style="height:20px"></div>
+    <div class="form-footer">
+      <div class="left"><span class="draft-info" id="draft-info">Sin cambios</span></div>
+      <div class="right">
+        <button class="btn btn-ghost" onclick="Router.go('products')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-bot">Guardar vehículo</button>
+      </div>
+    </div>`;
+
+  switchTab('basic');
+  bindFormEvents();
+  bindDynamicRows();
+  bindPhotoUploader();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  $$('.form-tabs button').forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
+  $$('.form-section').forEach(s => s.classList.toggle('is-visible', s.dataset.section === tab));
+}
+
+// ============================================================
+// TAB TEMPLATES
+// ============================================================
+function renderTabBasic() {
+  const p = currentProduct;
+  return `
+  <section class="form-section" data-section="basic">
+    <h2>Datos básicos</h2>
+    <p class="sub">Información principal que verá el visitante en la ficha del vehículo.</p>
+    <div class="form-row cols-2">
+      <div class="field">
+        <label>Categoría <span class="req">*</span></label>
+        <select data-f="category">
+          <option value="carro" ${p.category==='carro'?'selected':''}>Carro</option>
+          <option value="moto" ${p.category==='moto'?'selected':''}>Moto</option>
+          <option value="reloj" ${p.category==='reloj'?'selected':''}>Reloj</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado <span class="req">*</span></label>
+        <select data-f="status">
+          <option value="disponible" ${p.status==='disponible'?'selected':''}>Disponible</option>
+          <option value="reservado" ${p.status==='reservado'?'selected':''}>Reservado</option>
+          <option value="vendido" ${p.status==='vendido'?'selected':''}>Vendido</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" data-f="title" value="${e(p.title)}" placeholder="Ej: Chevrolet Corvette Stingray 1LT">
+        <span class="hint">El título principal que se muestra en la card y en la ficha.</span>
+      </div>
+    </div>
+    <div class="form-row cols-2">
+      <div class="field">
+        <label>Marca <span class="req">*</span></label>
+        <input type="text" data-f="brand" value="${e(p.brand)}" placeholder="Chevrolet">
+      </div>
+      <div class="field">
+        <label>Modelo</label>
+        <input type="text" data-f="model" value="${e(p.model)}" placeholder="Corvette Stingray 1LT Convertible">
+      </div>
+    </div>
+    <div class="form-row cols-3">
+      <div class="field">
+        <label>Año</label>
+        <input type="number" data-f="year" value="${p.year||''}" placeholder="2027" min="1900" max="2035">
+      </div>
+      <div class="field">
+        <label>Kilometraje</label>
+        <input type="number" data-f="mileage" value="${p.mileage??''}" placeholder="0" min="0">
+        <span class="hint">0 para unidades nuevas.</span>
+      </div>
+      <div class="field">
+        <label>Condición</label>
+        <select data-f="condition">
+          <option value="nuevo" ${p.condition==='nuevo'?'selected':''}>Nuevo</option>
+          <option value="usado" ${p.condition==='usado'?'selected':''}>Usado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row cols-2">
+      <div class="field">
+        <label>Precio (COP) <span class="req">*</span></label>
+        <div class="input-prefix" data-prefix="$"><input type="number" data-f="price" value="${p.price||''}" placeholder="619900000" min="0" step="100000"></div>
+        <span class="hint" id="price-formatted"></span>
+      </div>
+      <div class="field">
+        <label>ID interno</label>
+        <input type="text" data-f="id" value="${e(p.id)}" placeholder="(se genera automático al guardar)">
+        <span class="hint">Se usa para la URL. Déjalo vacío para auto-generar.</span>
+      </div>
+    </div>
+    <div class="field-check">
+      <input type="checkbox" id="featured-check" data-f="featured" ${p.featured?'checked':''}>
+      <label for="featured-check">Mostrar como vehículo destacado en el home</label>
+    </div>
+  </section>`;
+}
+
+function renderTabPhotos() {
+  return `
+  <section class="form-section" data-section="photos">
+    <h2>Fotos del vehículo</h2>
+    <p class="sub">La primera foto es la principal (hero). Arrastra para reordenar. Las imágenes se optimizan a WebP automáticamente.</p>
+    <div class="photo-dropzone" id="photo-drop">
+      <p class="main">Arrastra tus fotos aquí</p>
+      <p>o <label style="color:var(--red);cursor:pointer;text-decoration:underline"><input type="file" id="photo-input" accept="image/*" multiple style="display:none">haz clic para seleccionar</label></p>
+      <small>JPG, PNG, WebP · hasta 20 fotos · se redimensionan a 1400px máximo</small>
+    </div>
+    <div class="photos-grid" id="photos-grid"></div>
+  </section>`;
+}
+
+function renderTabSpecs() {
+  return `
+  <section class="form-section" data-section="specs">
+    <h2>Specs del sidebar</h2>
+    <p class="sub">Las especificaciones principales que aparecen en el panel derecho de la ficha, junto al precio (Motor, Transmisión, Combustible, etc.).</p>
+    <div class="kv-rows" id="specs-rows"></div>
+    <button type="button" class="btn-add" data-add="specs">+ Agregar spec</button>
+  </section>`;
+}
+
+function renderTabKey() {
+  return `
+  <section class="form-section" data-section="key">
+    <h2>Key Information</h2>
+    <p class="sub">Lista de puntos destacados que aparecen con marcador rojo en la sección "Key Information" de la ficha.</p>
+    <div class="list-rows" id="key-rows"></div>
+    <button type="button" class="btn-add" data-add="key">+ Agregar punto</button>
+  </section>`;
+}
+
+function renderTabOptions() {
+  return `
+  <section class="form-section" data-section="options">
+    <h2>Equipamiento (Options)</h2>
+    <p class="sub">Agrupa el equipamiento por áreas (Confort, Audio, Seguridad, etc.). Cada área se renderiza como una columna en la ficha pública.</p>
+    <div id="options-groups"></div>
+    <button type="button" class="btn-add" data-add="opt-group">+ Agregar área</button>
+  </section>`;
+}
+
+function renderTabModes() {
+  return `
+  <section class="form-section" data-section="modes">
+    <h2>Modos de manejo</h2>
+    <p class="sub">Si el vehículo tiene modos de conducción (Sport, Tour, Off-road…), agrégalos aquí. Se renderizan como tarjetas.</p>
+    <div id="modes-rows"></div>
+    <button type="button" class="btn-add" data-add="mode">+ Agregar modo</button>
+  </section>`;
+}
+
+function renderTabTech() {
+  return `
+  <section class="form-section" data-section="tech">
+    <h2>Datos técnicos</h2>
+    <p class="sub">Las tres columnas que aparecen en la sección "Technical Data" de la ficha. Deja vacías las categorías que no apliquen.</p>
+    ${['Performance','Dimensions','Economy'].map(g => `
+      <div class="tech-group">
+        <div class="tech-group-title">${g}</div>
+        <div class="kv-rows" data-tech="${g}"></div>
+        <button type="button" class="btn-add" data-add="tech" data-group="${g}">+ Agregar fila</button>
+      </div>`).join('')}
+  </section>`;
+}
+
+function renderTabDescr() {
+  const p = currentProduct;
+  return `
+  <section class="form-section" data-section="descr">
+    <h2>Descripción y notas</h2>
+    <p class="sub">Texto largo que aparece en la sección "Model Overview" y nota legal al final.</p>
+    <div class="field">
+      <label>Descripción del vehículo</label>
+      <textarea data-f="description" rows="12" placeholder="Describe el vehículo: motor, características destacadas, situación comercial. Puedes usar varios párrafos (deja una línea en blanco entre ellos).">${e(p.description)}</textarea>
+      <span class="hint">Separa párrafos con una línea en blanco.</span>
+    </div>
+    <div class="field" style="margin-top:16px">
+      <label>Disclaimer / nota legal</label>
+      <textarea data-f="disclaimer" rows="4" placeholder="Ej: Las cifras técnicas corresponden a la ficha oficial del fabricante. Precio y disponibilidad se confirman con el asesor.">${e(p.disclaimer)}</textarea>
+    </div>
+  </section>`;
+}
+
+// ============================================================
+// BIND EVENTS
+// ============================================================
+function bindFormEvents() {
+  // Tabs
+  $$('.form-tabs button').forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab));
+
+  // Inputs con data-f
+  document.addEventListener('input', onFieldInput);
+
+  // Save
+  ['#btn-save-top','#btn-save-bot'].forEach(sel => {
+    const btn = $(sel);
+    if (btn) btn.onclick = saveProduct;
+  });
+
+  // Autogenerar título cuando cambie marca/modelo si está vacío
+  const titleInput = $('[data-f="title"]');
+  if (titleInput && !titleInput.value) {
+    const update = () => {
+      if (!titleInput.value) {
+        const brand = $('[data-f="brand"]').value;
+        const model = $('[data-f="model"]').value;
+        titleInput.value = (brand + ' ' + model).trim();
+        currentProduct.title = titleInput.value;
+      }
+    };
+    $('[data-f="brand"]').addEventListener('blur', update);
+    $('[data-f="model"]').addEventListener('blur', update);
+  }
+
+  // Formato precio en vivo
+  const priceEl = $('[data-f="price"]');
+  const fmt = $('#price-formatted');
+  if (priceEl && fmt) {
+    const upd = () => {
+      const v = Number(priceEl.value);
+      fmt.textContent = v > 0 ? '= ' + new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP',maximumFractionDigits:0}).format(v) : '';
+    };
+    priceEl.addEventListener('input', upd);
+    upd();
+  }
+}
+
+function onFieldInput(ev) {
+  const el = ev.target;
+  if (!el.matches('[data-f]')) return;
+  const f = el.dataset.f;
+  let val = el.value;
+  if (el.type === 'checkbox') val = el.checked;
+  else if (el.type === 'number') val = val === '' ? null : Number(val);
+  currentProduct[f] = val;
+  markDraft();
+}
+
+let draftTimer = null;
+function markDraft() {
+  $('#draft-info').textContent = 'Guardando borrador...';
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    collectDynamicToProduct();
+    Store.saveDraft(currentProduct);
+    $('#draft-info').textContent = 'Borrador guardado · ' + new Date().toLocaleTimeString('es-CO');
+  }, 800);
+}
+
+// ============================================================
+// DYNAMIC ROWS (specs, key_info, options, modes, tech)
+// ============================================================
+function bindDynamicRows() {
+  // Pintar las filas iniciales
+  renderSpecsRows();
+  renderKeyRows();
+  renderOptionsGroups();
+  renderModesRows();
+  renderTechRows();
+
+  // Delegación global de clicks + inputs
+  $('.form-main').addEventListener('click', (ev) => {
+    const addBtn = ev.target.closest('[data-add]');
+    if (addBtn) return handleAdd(addBtn);
+    const rmBtn = ev.target.closest('.btn-remove');
+    if (rmBtn) return handleRemove(rmBtn);
+  });
+}
+
+function handleAdd(btn) {
+  const type = btn.dataset.add;
+  if (type === 'specs') {
+    currentProduct.specs['Nuevo'] = '';
+    renderSpecsRows();
+  } else if (type === 'key') {
+    currentProduct.key_info.push('');
+    renderKeyRows();
+  } else if (type === 'opt-group') {
+    const name = 'Nueva área';
+    currentProduct.options[name] = [''];
+    renderOptionsGroups();
+  } else if (type === 'opt-item') {
+    const group = btn.dataset.group;
+    if (!currentProduct.options[group]) currentProduct.options[group] = [];
+    currentProduct.options[group].push('');
+    renderOptionsGroups();
+  } else if (type === 'mode') {
+    currentProduct.drive_modes.push({name:'', desc:''});
+    renderModesRows();
+  } else if (type === 'tech') {
+    const g = btn.dataset.group;
+    currentProduct.technical_data[g].push(['','']);
+    renderTechRows();
+  }
+  markDraft();
+}
+
+function handleRemove(btn) {
+  const type = btn.dataset.remove;
+  const idx = Number(btn.dataset.idx);
+  if (type === 'specs') {
+    const key = btn.dataset.key;
+    delete currentProduct.specs[key];
+    renderSpecsRows();
+  } else if (type === 'key') {
+    currentProduct.key_info.splice(idx, 1);
+    renderKeyRows();
+  } else if (type === 'opt-group') {
+    delete currentProduct.options[btn.dataset.group];
+    renderOptionsGroups();
+  } else if (type === 'opt-item') {
+    const g = btn.dataset.group;
+    currentProduct.options[g].splice(idx, 1);
+    if (!currentProduct.options[g].length) delete currentProduct.options[g];
+    renderOptionsGroups();
+  } else if (type === 'mode') {
+    currentProduct.drive_modes.splice(idx, 1);
+    renderModesRows();
+  } else if (type === 'tech') {
+    currentProduct.technical_data[btn.dataset.group].splice(idx, 1);
+    renderTechRows();
+  }
+  markDraft();
+}
+
+function renderSpecsRows() {
+  const host = $('#specs-rows');
+  if (!host) return;
+  const entries = Object.entries(currentProduct.specs);
+  host.innerHTML = entries.length ? entries.map(([k,v], i) => `
+    <div class="kv-row" data-row="specs" data-key="${e(k)}">
+      <input type="text" placeholder="Ej: Motor" value="${e(k)}" data-kv="key">
+      <input type="text" placeholder="Ej: V8 LS6 atmosférico 6.7 L" value="${e(v)}" data-kv="val">
+      <button class="btn-remove" data-remove="specs" data-key="${e(k)}" data-idx="${i}" title="Eliminar">×</button>
+    </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0">Sin specs aún. Agrega el primero.</p>';
+  // Bind inputs
+  host.querySelectorAll('.kv-row').forEach(row => {
+    const oldKey = row.dataset.key;
+    row.querySelectorAll('[data-kv]').forEach(inp => {
+      inp.oninput = () => {
+        const newKey = row.querySelector('[data-kv="key"]').value;
+        const newVal = row.querySelector('[data-kv="val"]').value;
+        if (inp.dataset.kv === 'key' && newKey !== oldKey) {
+          delete currentProduct.specs[oldKey];
+          currentProduct.specs[newKey || 'Nuevo'] = newVal;
+          row.dataset.key = newKey;
+        } else {
+          currentProduct.specs[newKey] = newVal;
+        }
+        markDraft();
+      };
+    });
+  });
+}
+
+function renderKeyRows() {
+  const host = $('#key-rows');
+  if (!host) return;
+  host.innerHTML = currentProduct.key_info.length ? currentProduct.key_info.map((v, i) => `
+    <div class="list-row">
+      <input type="text" value="${e(v)}" placeholder="Ej: Motor V8 atmosférico central" data-key-idx="${i}">
+      <button class="btn-remove" data-remove="key" data-idx="${i}" title="Eliminar">×</button>
+    </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0">Sin puntos clave aún.</p>';
+  host.querySelectorAll('[data-key-idx]').forEach(inp => {
+    inp.oninput = () => { currentProduct.key_info[Number(inp.dataset.keyIdx)] = inp.value; markDraft(); };
+  });
+}
+
+function renderOptionsGroups() {
+  const host = $('#options-groups');
+  if (!host) return;
+  const groups = Object.entries(currentProduct.options);
+  host.innerHTML = groups.length ? groups.map(([groupName, items]) => `
+    <div class="opt-group" data-group="${e(groupName)}">
+      <div class="opt-group-head">
+        <input type="text" value="${e(groupName)}" data-grp-name="${e(groupName)}" placeholder="Ej: Confort">
+        <button class="btn-remove" data-remove="opt-group" data-group="${e(groupName)}" title="Eliminar área">×</button>
+      </div>
+      <div class="list-rows">
+        ${items.map((item, i) => `
+          <div class="list-row">
+            <input type="text" value="${e(item)}" placeholder="Ej: Asientos GT1 con ajuste eléctrico" data-grp-item="${e(groupName)}" data-item-idx="${i}">
+            <button class="btn-remove" data-remove="opt-item" data-group="${e(groupName)}" data-idx="${i}" title="Eliminar">×</button>
+          </div>`).join('')}
+      </div>
+      <button type="button" class="btn-add" data-add="opt-item" data-group="${e(groupName)}">+ Agregar item</button>
+    </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0">Sin equipamiento aún.</p>';
+  // Bind inputs
+  host.querySelectorAll('[data-grp-name]').forEach(inp => {
+    inp.onblur = () => {
+      const oldName = inp.dataset.grpName;
+      const newName = inp.value.trim() || oldName;
+      if (newName !== oldName && !currentProduct.options[newName]) {
+        currentProduct.options[newName] = currentProduct.options[oldName];
+        delete currentProduct.options[oldName];
+        renderOptionsGroups();
+        markDraft();
+      }
+    };
+  });
+  host.querySelectorAll('[data-grp-item]').forEach(inp => {
+    inp.oninput = () => {
+      const g = inp.dataset.grpItem;
+      const i = Number(inp.dataset.itemIdx);
+      currentProduct.options[g][i] = inp.value;
+      markDraft();
+    };
+  });
+}
+
+function renderModesRows() {
+  const host = $('#modes-rows');
+  if (!host) return;
+  host.innerHTML = currentProduct.drive_modes.length ? currentProduct.drive_modes.map((m, i) => `
+    <div class="mode-row" style="margin-bottom:8px">
+      <input type="text" value="${e(m.name)}" placeholder="Nombre (ej: Sport)" data-mode-idx="${i}" data-mode-f="name">
+      <input type="text" value="${e(m.desc)}" placeholder="Descripción breve" data-mode-idx="${i}" data-mode-f="desc">
+      <button class="btn-remove" data-remove="mode" data-idx="${i}">×</button>
+    </div>`).join('') : '<p style="color:#999;font-size:13px;padding:12px 0">Sin modos de manejo aún.</p>';
+  host.querySelectorAll('[data-mode-idx]').forEach(inp => {
+    inp.oninput = () => {
+      const i = Number(inp.dataset.modeIdx);
+      currentProduct.drive_modes[i][inp.dataset.modeF] = inp.value;
+      markDraft();
+    };
+  });
+}
+
+function renderTechRows() {
+  ['Performance','Dimensions','Economy'].forEach(g => {
+    const host = $(`[data-tech="${g}"]`);
+    if (!host) return;
+    const rows = currentProduct.technical_data[g] || [];
+    host.innerHTML = rows.length ? rows.map(([k,v], i) => `
+      <div class="kv-row">
+        <input type="text" value="${e(k)}" placeholder="Ej: Potencia" data-tech-g="${g}" data-tech-i="${i}" data-tech-f="k">
+        <input type="text" value="${e(v)}" placeholder="Ej: 535 HP" data-tech-g="${g}" data-tech-i="${i}" data-tech-f="v">
+        <button class="btn-remove" data-remove="tech" data-group="${g}" data-idx="${i}">×</button>
+      </div>`).join('') : '<p style="color:#aaa;font-size:12px;padding:6px 0">Sin filas en ' + g + '.</p>';
+    host.querySelectorAll('[data-tech-g]').forEach(inp => {
+      inp.oninput = () => {
+        const i = Number(inp.dataset.techI);
+        const idx = inp.dataset.techF === 'k' ? 0 : 1;
+        currentProduct.technical_data[g][i][idx] = inp.value;
+        markDraft();
+      };
+    });
+  });
+}
+
+// ============================================================
+// PHOTO UPLOADER
+// ============================================================
+function bindPhotoUploader() {
+  const drop = $('#photo-drop');
+  const input = $('#photo-input');
+  const grid = $('#photos-grid');
+  if (!drop || !input || !grid) return;
+
+  renderPhotosGrid();
+
+  input.addEventListener('change', (ev) => handleFiles(ev.target.files));
+  drop.addEventListener('dragover', (ev) => { ev.preventDefault(); drop.classList.add('is-drag'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('is-drag'));
+  drop.addEventListener('drop', (ev) => {
+    ev.preventDefault();
+    drop.classList.remove('is-drag');
+    handleFiles(ev.dataTransfer.files);
+  });
+}
+
+async function handleFiles(fileList) {
+  const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  if (currentProduct.image_urls.length + files.length > 20) {
+    toast('Máximo 20 fotos por vehículo', 'warn');
+  }
+  const slots = Math.max(0, 20 - currentProduct.image_urls.length);
+  const toProcess = files.slice(0, slots);
+  toast(`Procesando ${toProcess.length} ${toProcess.length===1?'foto':'fotos'}...`, '', 2000);
+  for (const file of toProcess) {
+    try {
+      const webp = await resizeToWebP(file, 1400, 0.78);
+      currentProduct.image_urls.push(webp);
+    } catch (err) {
+      console.error(err);
+      toast('Error con ' + file.name, 'err');
+    }
+  }
+  renderPhotosGrid();
+  markDraft();
+}
+
+function resizeToWebP(file, maxW, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => { img.src = reader.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width:w, height:h } = img;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        const r2 = new FileReader();
+        r2.onload = () => resolve(r2.result); // dataURL
+        r2.onerror = reject;
+        r2.readAsDataURL(blob);
+      }, 'image/webp', quality);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotosGrid() {
+  const grid = $('#photos-grid');
+  if (!grid) return;
+  const imgs = currentProduct.image_urls;
+  if (!imgs.length) { grid.innerHTML = ''; return; }
+  grid.innerHTML = imgs.map((src, i) => `
+    <div class="photo-tile ${i===0?'is-hero':''}" draggable="true" data-i="${i}">
+      ${i===0?'<span class="hero-badge">Principal</span>':''}
+      <img src="${e(src)}" alt="Foto ${i+1}">
+      <div class="photo-actions">
+        ${i>0?'<button data-ph-act="hero" data-i="'+i+'" title="Hacer principal">★</button>':''}
+        ${i>0?'<button data-ph-act="up" data-i="'+i+'" title="Mover arriba">↑</button>':''}
+        ${i<imgs.length-1?'<button data-ph-act="down" data-i="'+i+'" title="Mover abajo">↓</button>':''}
+        <button data-ph-act="del" data-i="${i}" title="Eliminar" class="del">×</button>
+      </div>
+      <span class="idx">${i+1}</span>
+    </div>`).join('');
+
+  // Clicks
+  grid.querySelectorAll('[data-ph-act]').forEach(b => {
+    b.onclick = (ev) => {
+      ev.stopPropagation();
+      const i = Number(b.dataset.i);
+      const act = b.dataset.phAct;
+      if (act === 'del') {
+        currentProduct.image_urls.splice(i, 1);
+      } else if (act === 'hero') {
+        const [el] = currentProduct.image_urls.splice(i, 1);
+        currentProduct.image_urls.unshift(el);
+      } else if (act === 'up') {
+        [currentProduct.image_urls[i-1], currentProduct.image_urls[i]] = [currentProduct.image_urls[i], currentProduct.image_urls[i-1]];
+      } else if (act === 'down') {
+        [currentProduct.image_urls[i+1], currentProduct.image_urls[i]] = [currentProduct.image_urls[i], currentProduct.image_urls[i+1]];
+      }
+      renderPhotosGrid();
+      markDraft();
+    };
+  });
+
+  // Drag & drop reorder
+  let dragI = null;
+  grid.querySelectorAll('.photo-tile').forEach(tile => {
+    tile.ondragstart = (ev) => { dragI = Number(tile.dataset.i); tile.classList.add('dragging'); ev.dataTransfer.effectAllowed = 'move'; };
+    tile.ondragend = () => tile.classList.remove('dragging');
+    tile.ondragover = (ev) => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; };
+    tile.ondrop = (ev) => {
+      ev.preventDefault();
+      const toI = Number(tile.dataset.i);
+      if (dragI === null || dragI === toI) return;
+      const [el] = currentProduct.image_urls.splice(dragI, 1);
+      currentProduct.image_urls.splice(toI, 0, el);
+      dragI = null;
+      renderPhotosGrid();
+      markDraft();
+    };
+  });
+}
+
+// ============================================================
+// COLLECT & SAVE
+// ============================================================
+function collectDynamicToProduct() {
+  // Los render*Rows ya actualizan currentProduct en live.
+  // Solo nos aseguramos de limpiar entradas vacías al guardar.
+  // Nada que recolectar extra aquí porque los oninput ya mantienen el estado.
+}
+
+async function saveProduct() {
+  collectDynamicToProduct();
+  const p = currentProduct;
+
+  // Validaciones
+  const errors = [];
+  if (!p.title?.trim()) errors.push('El título es obligatorio');
+  if (!p.brand?.trim()) errors.push('La marca es obligatoria');
+  if (!p.category) errors.push('La categoría es obligatoria');
+  if (!p.price || p.price <= 0) errors.push('El precio debe ser mayor a 0');
+  if (errors.length) {
+    toast(errors[0], 'err');
+    switchTab('basic');
+    return;
+  }
+
+  // Autogenerar id y slug si no existen
+  if (!p.id) p.id = 'gp-' + slugify(p.brand + '-' + (p.model||p.title)).slice(0,30) + '-' + Date.now().toString(36).slice(-4);
+  if (!p.slug) p.slug = slugify(p.title + '-' + (p.year||''));
+
+  // Limpiar entries vacías
+  Object.keys(p.specs).forEach(k => { if (!p.specs[k]?.toString().trim()) delete p.specs[k]; });
+  p.key_info = p.key_info.filter(x => x.trim());
+  Object.keys(p.options).forEach(g => {
+    p.options[g] = p.options[g].filter(x => x.trim());
+    if (!p.options[g].length) delete p.options[g];
+  });
+  p.drive_modes = p.drive_modes.filter(m => m.name.trim());
+  ['Performance','Dimensions','Economy'].forEach(g => {
+    p.technical_data[g] = (p.technical_data[g]||[]).filter(([k,v]) => k.trim() || v.toString().trim());
+  });
+
+  const btn = $('#btn-save-top') || $('#btn-save-bot');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+  try {
+    await Store.save(p);
+    Store.clearDraft();
+    toast('Vehículo guardado correctamente', 'ok');
+    setTimeout(() => Router.go('products'), 600);
+  } catch (err) {
+    toast('Error al guardar: ' + err.message, 'err');
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar'; }
+  }
+}
+</script></body>
+</html>
