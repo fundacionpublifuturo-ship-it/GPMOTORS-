@@ -4,5 +4,4 @@ Disallow: /admin
 Disallow: /admin.html
 Disallow: /panel
 
-# Sitemap (actualiza con tu dominio final)
-# Sitemap: https://gpmotors.co/sitemap.xml
+Sitemap: https://gpmotors.com.co/sitemap.xml
